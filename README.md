@@ -17,6 +17,7 @@ link_directories    (/opt/rocm/lib)
 ## Yolo
 Input into this net is a 1x3x416x416 tensor and the output is 1x425x12x12.
 The net was taked from [here (tiny_yolo_deploy.prototxt)](https://github.com/tsingjinyun/caffe-yolov2)
+
 Build the sample:
 ```
 (Modify CMakeLists.txt if needed)
