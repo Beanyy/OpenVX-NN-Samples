@@ -1,0 +1,258 @@
+import vx_nn
+data data = tensor:4,{416,416,3,1},VX_TYPE_FLOAT32,0
+read data input.f32
+data conv1 = virtual-tensor:4,{416,416,16,1},VX_TYPE_FLOAT32,0
+data conv1_W = tensor:4,{3,3,3,16},VX_TYPE_FLOAT32,0
+init conv1_W weights/conv1.f32
+data conv1_params =  scalar:VX_TYPE_NN_CONVOLUTION_PARAMS,{1,1,VX_CONVERT_POLICY_SATURATE,VX_ROUND_POLICY_TO_NEAREST_EVEN,VX_NN_DS_SIZE_ROUNDING_FLOOR,0,0}
+node org.khronos.nn_extension.convolution_layer data conv1_W NULL conv1_params conv1
+
+data conv1_scale = virtual-tensor:4,{416,416,16,1},VX_TYPE_FLOAT32,0
+data conv1_bn_W = tensor:1,{16},VX_TYPE_FLOAT32,0
+init conv1_bn_W weights/conv1_bn.f32
+data conv1_bn_B = tensor:1,{16},VX_TYPE_FLOAT32,0
+init conv1_bn_B bias/conv1_bn.f32
+data conv1_scale_W = tensor:1,{16},VX_TYPE_FLOAT32,0
+init conv1_scale_W weights/conv1_scale.f32
+data conv1_scale_B = tensor:1,{16},VX_TYPE_FLOAT32,0
+init conv1_scale_B bias/conv1_scale.f32
+data conv1_bn_eps = scalar:VX_TYPE_FLOAT32,0.001
+node com.amd.nn_extension.batch_normalization_layer conv1 conv1_bn_W conv1_bn_B conv1_scale_W conv1_scale_B conv1_bn_eps conv1_scale
+
+data relu1 = virtual-tensor:4,{416,416,16,1},VX_TYPE_FLOAT32,0
+data relu1_mode =  scalar:VX_TYPE_ENUM,VX_NN_ACTIVATION_LEAKY_RELU
+data relu1_param_a = scalar:VX_TYPE_FLOAT32,0.1
+data relu1_param_b = scalar:VX_TYPE_FLOAT32,0
+node org.khronos.nn_extension.activation_layer conv1_scale relu1_mode relu1_param_a relu1_param_b relu1
+
+data pool1 = virtual-tensor:4,{208,208,16,1},VX_TYPE_FLOAT32,0
+data pool1_type =  scalar:VX_TYPE_ENUM,VX_NN_POOLING_MAX
+data pool1_kernel_w = scalar:VX_TYPE_SIZE,2
+data pool1_kernel_h = scalar:VX_TYPE_SIZE,2
+data pool1_pad_w = scalar:VX_TYPE_SIZE,0
+data pool1_pad_h = scalar:VX_TYPE_SIZE,0
+data pool1_roundPolicy =  scalar:VX_TYPE_ENUM,VX_ROUND_POLICY_TO_NEAREST_EVEN
+node org.khronos.nn_extension.pooling_layer relu1 pool1_type pool1_kernel_w pool1_kernel_h pool1_pad_w pool1_pad_h pool1_roundPolicy pool1
+
+data conv2 = virtual-tensor:4,{208,208,32,1},VX_TYPE_FLOAT32,0
+data conv2_W = tensor:4,{3,3,16,32},VX_TYPE_FLOAT32,0
+init conv2_W weights/conv2.f32
+data conv2_params =  scalar:VX_TYPE_NN_CONVOLUTION_PARAMS,{1,1,VX_CONVERT_POLICY_SATURATE,VX_ROUND_POLICY_TO_NEAREST_EVEN,VX_NN_DS_SIZE_ROUNDING_FLOOR,0,0}
+node org.khronos.nn_extension.convolution_layer pool1 conv2_W NULL conv2_params conv2
+
+data conv2_scale = virtual-tensor:4,{208,208,32,1},VX_TYPE_FLOAT32,0
+data conv2_bn_W = tensor:1,{32},VX_TYPE_FLOAT32,0
+init conv2_bn_W weights/conv2_bn.f32
+data conv2_bn_B = tensor:1,{32},VX_TYPE_FLOAT32,0
+init conv2_bn_B bias/conv2_bn.f32
+data conv2_scale_W = tensor:1,{32},VX_TYPE_FLOAT32,0
+init conv2_scale_W weights/conv2_scale.f32
+data conv2_scale_B = tensor:1,{32},VX_TYPE_FLOAT32,0
+init conv2_scale_B bias/conv2_scale.f32
+data conv2_bn_eps = scalar:VX_TYPE_FLOAT32,0.001
+node com.amd.nn_extension.batch_normalization_layer conv2 conv2_bn_W conv2_bn_B conv2_scale_W conv2_scale_B conv2_bn_eps conv2_scale
+
+data relu2 = virtual-tensor:4,{208,208,32,1},VX_TYPE_FLOAT32,0
+data relu2_mode =  scalar:VX_TYPE_ENUM,VX_NN_ACTIVATION_LEAKY_RELU
+data relu2_param_a = scalar:VX_TYPE_FLOAT32,0.1
+data relu2_param_b = scalar:VX_TYPE_FLOAT32,0
+node org.khronos.nn_extension.activation_layer conv2_scale relu2_mode relu2_param_a relu2_param_b relu2
+
+data pool2 = virtual-tensor:4,{104,104,32,1},VX_TYPE_FLOAT32,0
+data pool2_type =  scalar:VX_TYPE_ENUM,VX_NN_POOLING_MAX
+data pool2_kernel_w = scalar:VX_TYPE_SIZE,2
+data pool2_kernel_h = scalar:VX_TYPE_SIZE,2
+data pool2_pad_w = scalar:VX_TYPE_SIZE,0
+data pool2_pad_h = scalar:VX_TYPE_SIZE,0
+data pool2_roundPolicy =  scalar:VX_TYPE_ENUM,VX_ROUND_POLICY_TO_NEAREST_EVEN
+node org.khronos.nn_extension.pooling_layer relu2 pool2_type pool2_kernel_w pool2_kernel_h pool2_pad_w pool2_pad_h pool2_roundPolicy pool2
+
+data conv3 = virtual-tensor:4,{104,104,64,1},VX_TYPE_FLOAT32,0
+data conv3_W = tensor:4,{3,3,32,64},VX_TYPE_FLOAT32,0
+init conv3_W weights/conv3.f32
+data conv3_params =  scalar:VX_TYPE_NN_CONVOLUTION_PARAMS,{1,1,VX_CONVERT_POLICY_SATURATE,VX_ROUND_POLICY_TO_NEAREST_EVEN,VX_NN_DS_SIZE_ROUNDING_FLOOR,0,0}
+node org.khronos.nn_extension.convolution_layer pool2 conv3_W NULL conv3_params conv3
+
+data conv3_scale = virtual-tensor:4,{104,104,64,1},VX_TYPE_FLOAT32,0
+data conv3_bn_W = tensor:1,{64},VX_TYPE_FLOAT32,0
+init conv3_bn_W weights/conv3_bn.f32
+data conv3_bn_B = tensor:1,{64},VX_TYPE_FLOAT32,0
+init conv3_bn_B bias/conv3_bn.f32
+data conv3_scale_W = tensor:1,{64},VX_TYPE_FLOAT32,0
+init conv3_scale_W weights/conv3_scale.f32
+data conv3_scale_B = tensor:1,{64},VX_TYPE_FLOAT32,0
+init conv3_scale_B bias/conv3_scale.f32
+data conv3_bn_eps = scalar:VX_TYPE_FLOAT32,0.001
+node com.amd.nn_extension.batch_normalization_layer conv3 conv3_bn_W conv3_bn_B conv3_scale_W conv3_scale_B conv3_bn_eps conv3_scale
+
+data relu3 = virtual-tensor:4,{104,104,64,1},VX_TYPE_FLOAT32,0
+data relu3_mode =  scalar:VX_TYPE_ENUM,VX_NN_ACTIVATION_LEAKY_RELU
+data relu3_param_a = scalar:VX_TYPE_FLOAT32,0.1
+data relu3_param_b = scalar:VX_TYPE_FLOAT32,0
+node org.khronos.nn_extension.activation_layer conv3_scale relu3_mode relu3_param_a relu3_param_b relu3
+
+data pool3 = virtual-tensor:4,{52,52,64,1},VX_TYPE_FLOAT32,0
+data pool3_type =  scalar:VX_TYPE_ENUM,VX_NN_POOLING_MAX
+data pool3_kernel_w = scalar:VX_TYPE_SIZE,2
+data pool3_kernel_h = scalar:VX_TYPE_SIZE,2
+data pool3_pad_w = scalar:VX_TYPE_SIZE,0
+data pool3_pad_h = scalar:VX_TYPE_SIZE,0
+data pool3_roundPolicy =  scalar:VX_TYPE_ENUM,VX_ROUND_POLICY_TO_NEAREST_EVEN
+node org.khronos.nn_extension.pooling_layer relu3 pool3_type pool3_kernel_w pool3_kernel_h pool3_pad_w pool3_pad_h pool3_roundPolicy pool3
+
+data conv4 = virtual-tensor:4,{52,52,128,1},VX_TYPE_FLOAT32,0
+data conv4_W = tensor:4,{3,3,64,128},VX_TYPE_FLOAT32,0
+init conv4_W weights/conv4.f32
+data conv4_params =  scalar:VX_TYPE_NN_CONVOLUTION_PARAMS,{1,1,VX_CONVERT_POLICY_SATURATE,VX_ROUND_POLICY_TO_NEAREST_EVEN,VX_NN_DS_SIZE_ROUNDING_FLOOR,0,0}
+node org.khronos.nn_extension.convolution_layer pool3 conv4_W NULL conv4_params conv4
+
+data conv4_scale = virtual-tensor:4,{52,52,128,1},VX_TYPE_FLOAT32,0
+data conv4_bn_W = tensor:1,{128},VX_TYPE_FLOAT32,0
+init conv4_bn_W weights/conv4_bn.f32
+data conv4_bn_B = tensor:1,{128},VX_TYPE_FLOAT32,0
+init conv4_bn_B bias/conv4_bn.f32
+data conv4_scale_W = tensor:1,{128},VX_TYPE_FLOAT32,0
+init conv4_scale_W weights/conv4_scale.f32
+data conv4_scale_B = tensor:1,{128},VX_TYPE_FLOAT32,0
+init conv4_scale_B bias/conv4_scale.f32
+data conv4_bn_eps = scalar:VX_TYPE_FLOAT32,0.001
+node com.amd.nn_extension.batch_normalization_layer conv4 conv4_bn_W conv4_bn_B conv4_scale_W conv4_scale_B conv4_bn_eps conv4_scale
+
+data relu4 = virtual-tensor:4,{52,52,128,1},VX_TYPE_FLOAT32,0
+data relu4_mode =  scalar:VX_TYPE_ENUM,VX_NN_ACTIVATION_LEAKY_RELU
+data relu4_param_a = scalar:VX_TYPE_FLOAT32,0.1
+data relu4_param_b = scalar:VX_TYPE_FLOAT32,0
+node org.khronos.nn_extension.activation_layer conv4_scale relu4_mode relu4_param_a relu4_param_b relu4
+
+data pool4 = virtual-tensor:4,{26,26,128,1},VX_TYPE_FLOAT32,0
+data pool4_type =  scalar:VX_TYPE_ENUM,VX_NN_POOLING_MAX
+data pool4_kernel_w = scalar:VX_TYPE_SIZE,2
+data pool4_kernel_h = scalar:VX_TYPE_SIZE,2
+data pool4_pad_w = scalar:VX_TYPE_SIZE,0
+data pool4_pad_h = scalar:VX_TYPE_SIZE,0
+data pool4_roundPolicy =  scalar:VX_TYPE_ENUM,VX_ROUND_POLICY_TO_NEAREST_EVEN
+node org.khronos.nn_extension.pooling_layer relu4 pool4_type pool4_kernel_w pool4_kernel_h pool4_pad_w pool4_pad_h pool4_roundPolicy pool4
+
+data conv5 = virtual-tensor:4,{26,26,256,1},VX_TYPE_FLOAT32,0
+data conv5_W = tensor:4,{3,3,128,256},VX_TYPE_FLOAT32,0
+init conv5_W weights/conv5.f32
+data conv5_params =  scalar:VX_TYPE_NN_CONVOLUTION_PARAMS,{1,1,VX_CONVERT_POLICY_SATURATE,VX_ROUND_POLICY_TO_NEAREST_EVEN,VX_NN_DS_SIZE_ROUNDING_FLOOR,0,0}
+node org.khronos.nn_extension.convolution_layer pool4 conv5_W NULL conv5_params conv5
+
+data conv5_scale = virtual-tensor:4,{26,26,256,1},VX_TYPE_FLOAT32,0
+data conv5_bn_W = tensor:1,{256},VX_TYPE_FLOAT32,0
+init conv5_bn_W weights/conv5_bn.f32
+data conv5_bn_B = tensor:1,{256},VX_TYPE_FLOAT32,0
+init conv5_bn_B bias/conv5_bn.f32
+data conv5_scale_W = tensor:1,{256},VX_TYPE_FLOAT32,0
+init conv5_scale_W weights/conv5_scale.f32
+data conv5_scale_B = tensor:1,{256},VX_TYPE_FLOAT32,0
+init conv5_scale_B bias/conv5_scale.f32
+data conv5_bn_eps = scalar:VX_TYPE_FLOAT32,0.001
+node com.amd.nn_extension.batch_normalization_layer conv5 conv5_bn_W conv5_bn_B conv5_scale_W conv5_scale_B conv5_bn_eps conv5_scale
+
+data relu5 = virtual-tensor:4,{26,26,256,1},VX_TYPE_FLOAT32,0
+data relu5_mode =  scalar:VX_TYPE_ENUM,VX_NN_ACTIVATION_LEAKY_RELU
+data relu5_param_a = scalar:VX_TYPE_FLOAT32,0.1
+data relu5_param_b = scalar:VX_TYPE_FLOAT32,0
+node org.khronos.nn_extension.activation_layer conv5_scale relu5_mode relu5_param_a relu5_param_b relu5
+
+data pool5 = virtual-tensor:4,{13,13,256,1},VX_TYPE_FLOAT32,0
+data pool5_type =  scalar:VX_TYPE_ENUM,VX_NN_POOLING_MAX
+data pool5_kernel_w = scalar:VX_TYPE_SIZE,2
+data pool5_kernel_h = scalar:VX_TYPE_SIZE,2
+data pool5_pad_w = scalar:VX_TYPE_SIZE,0
+data pool5_pad_h = scalar:VX_TYPE_SIZE,0
+data pool5_roundPolicy =  scalar:VX_TYPE_ENUM,VX_ROUND_POLICY_TO_NEAREST_EVEN
+node org.khronos.nn_extension.pooling_layer relu5 pool5_type pool5_kernel_w pool5_kernel_h pool5_pad_w pool5_pad_h pool5_roundPolicy pool5
+
+data conv6 = virtual-tensor:4,{13,13,512,1},VX_TYPE_FLOAT32,0
+data conv6_W = tensor:4,{3,3,256,512},VX_TYPE_FLOAT32,0
+init conv6_W weights/conv6.f32
+data conv6_params =  scalar:VX_TYPE_NN_CONVOLUTION_PARAMS,{1,1,VX_CONVERT_POLICY_SATURATE,VX_ROUND_POLICY_TO_NEAREST_EVEN,VX_NN_DS_SIZE_ROUNDING_FLOOR,0,0}
+node org.khronos.nn_extension.convolution_layer pool5 conv6_W NULL conv6_params conv6
+
+data conv6_scale = virtual-tensor:4,{13,13,512,1},VX_TYPE_FLOAT32,0
+data conv6_bn_W = tensor:1,{512},VX_TYPE_FLOAT32,0
+init conv6_bn_W weights/conv6_bn.f32
+data conv6_bn_B = tensor:1,{512},VX_TYPE_FLOAT32,0
+init conv6_bn_B bias/conv6_bn.f32
+data conv6_scale_W = tensor:1,{512},VX_TYPE_FLOAT32,0
+init conv6_scale_W weights/conv6_scale.f32
+data conv6_scale_B = tensor:1,{512},VX_TYPE_FLOAT32,0
+init conv6_scale_B bias/conv6_scale.f32
+data conv6_bn_eps = scalar:VX_TYPE_FLOAT32,0.001
+node com.amd.nn_extension.batch_normalization_layer conv6 conv6_bn_W conv6_bn_B conv6_scale_W conv6_scale_B conv6_bn_eps conv6_scale
+
+data relu6 = virtual-tensor:4,{13,13,512,1},VX_TYPE_FLOAT32,0
+data relu6_mode =  scalar:VX_TYPE_ENUM,VX_NN_ACTIVATION_LEAKY_RELU
+data relu6_param_a = scalar:VX_TYPE_FLOAT32,0.1
+data relu6_param_b = scalar:VX_TYPE_FLOAT32,0
+node org.khronos.nn_extension.activation_layer conv6_scale relu6_mode relu6_param_a relu6_param_b relu6
+
+data pool6 = virtual-tensor:4,{12,12,512,1},VX_TYPE_FLOAT32,0
+data pool6_type =  scalar:VX_TYPE_ENUM,VX_NN_POOLING_MAX
+data pool6_kernel_w = scalar:VX_TYPE_SIZE,2
+data pool6_kernel_h = scalar:VX_TYPE_SIZE,2
+data pool6_pad_w = scalar:VX_TYPE_SIZE,0
+data pool6_pad_h = scalar:VX_TYPE_SIZE,0
+data pool6_roundPolicy =  scalar:VX_TYPE_ENUM,VX_ROUND_POLICY_TO_NEAREST_EVEN
+node org.khronos.nn_extension.pooling_layer relu6 pool6_type pool6_kernel_w pool6_kernel_h pool6_pad_w pool6_pad_h pool6_roundPolicy pool6
+
+data conv7 = virtual-tensor:4,{12,12,1024,1},VX_TYPE_FLOAT32,0
+data conv7_W = tensor:4,{3,3,512,1024},VX_TYPE_FLOAT32,0
+init conv7_W weights/conv7.f32
+data conv7_params =  scalar:VX_TYPE_NN_CONVOLUTION_PARAMS,{1,1,VX_CONVERT_POLICY_SATURATE,VX_ROUND_POLICY_TO_NEAREST_EVEN,VX_NN_DS_SIZE_ROUNDING_FLOOR,0,0}
+node org.khronos.nn_extension.convolution_layer pool6 conv7_W NULL conv7_params conv7
+
+data conv7_scale = virtual-tensor:4,{12,12,1024,1},VX_TYPE_FLOAT32,0
+data conv7_bn_W = tensor:1,{1024},VX_TYPE_FLOAT32,0
+init conv7_bn_W weights/conv7_bn.f32
+data conv7_bn_B = tensor:1,{1024},VX_TYPE_FLOAT32,0
+init conv7_bn_B bias/conv7_bn.f32
+data conv7_scale_W = tensor:1,{1024},VX_TYPE_FLOAT32,0
+init conv7_scale_W weights/conv7_scale.f32
+data conv7_scale_B = tensor:1,{1024},VX_TYPE_FLOAT32,0
+init conv7_scale_B bias/conv7_scale.f32
+data conv7_bn_eps = scalar:VX_TYPE_FLOAT32,0.001
+node com.amd.nn_extension.batch_normalization_layer conv7 conv7_bn_W conv7_bn_B conv7_scale_W conv7_scale_B conv7_bn_eps conv7_scale
+
+data relu7 = virtual-tensor:4,{12,12,1024,1},VX_TYPE_FLOAT32,0
+data relu7_mode =  scalar:VX_TYPE_ENUM,VX_NN_ACTIVATION_LEAKY_RELU
+data relu7_param_a = scalar:VX_TYPE_FLOAT32,0.1
+data relu7_param_b = scalar:VX_TYPE_FLOAT32,0
+node org.khronos.nn_extension.activation_layer conv7_scale relu7_mode relu7_param_a relu7_param_b relu7
+
+data conv8 = virtual-tensor:4,{12,12,1024,1},VX_TYPE_FLOAT32,0
+data conv8_W = tensor:4,{3,3,1024,1024},VX_TYPE_FLOAT32,0
+init conv8_W weights/conv8.f32
+data conv8_params =  scalar:VX_TYPE_NN_CONVOLUTION_PARAMS,{1,1,VX_CONVERT_POLICY_SATURATE,VX_ROUND_POLICY_TO_NEAREST_EVEN,VX_NN_DS_SIZE_ROUNDING_FLOOR,0,0}
+node org.khronos.nn_extension.convolution_layer relu7 conv8_W NULL conv8_params conv8
+
+data conv8_scale = virtual-tensor:4,{12,12,1024,1},VX_TYPE_FLOAT32,0
+data conv8_bn_W = tensor:1,{1024},VX_TYPE_FLOAT32,0
+init conv8_bn_W weights/conv8_bn.f32
+data conv8_bn_B = tensor:1,{1024},VX_TYPE_FLOAT32,0
+init conv8_bn_B bias/conv8_bn.f32
+data conv8_scale_W = tensor:1,{1024},VX_TYPE_FLOAT32,0
+init conv8_scale_W weights/conv8_scale.f32
+data conv8_scale_B = tensor:1,{1024},VX_TYPE_FLOAT32,0
+init conv8_scale_B bias/conv8_scale.f32
+data conv8_bn_eps = scalar:VX_TYPE_FLOAT32,0.001
+node com.amd.nn_extension.batch_normalization_layer conv8 conv8_bn_W conv8_bn_B conv8_scale_W conv8_scale_B conv8_bn_eps conv8_scale
+
+data relu8 = virtual-tensor:4,{12,12,1024,1},VX_TYPE_FLOAT32,0
+data relu8_mode =  scalar:VX_TYPE_ENUM,VX_NN_ACTIVATION_LEAKY_RELU
+data relu8_param_a = scalar:VX_TYPE_FLOAT32,0.1
+data relu8_param_b = scalar:VX_TYPE_FLOAT32,0
+node org.khronos.nn_extension.activation_layer conv8_scale relu8_mode relu8_param_a relu8_param_b relu8
+
+data conv9 = tensor:4,{12,12,425,1},VX_TYPE_FLOAT32,0
+data conv9_W = tensor:4,{1,1,1024,425},VX_TYPE_FLOAT32,0
+init conv9_W weights/conv9.f32
+data conv9_B = tensor:1,{425},VX_TYPE_FLOAT32,0
+init conv9_B bias/conv9.f32
+data conv9_params =  scalar:VX_TYPE_NN_CONVOLUTION_PARAMS,{0,0,VX_CONVERT_POLICY_SATURATE,VX_ROUND_POLICY_TO_NEAREST_EVEN,VX_NN_DS_SIZE_ROUNDING_FLOOR,0,0}
+node org.khronos.nn_extension.convolution_layer relu8 conv9_W conv9_B conv9_params conv9
+write conv9 output.f32
+
